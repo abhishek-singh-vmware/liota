@@ -33,13 +33,27 @@
 from linux_metrics import cpu_stat, disk_stat, net_stat
 
 from liota.core.package_manager import LiotaPackage
+<<<<<<< HEAD
 from liota.lib.utilities.utility import get_default_network_interface, get_disk_name
+=======
+from liota.lib.utilities.utility import get_default_network_interface, get_disk_name, read_user_config
+>>>>>>> vmware/master
 
 
 dependencies = ["iotcc"]
 
 # Getting edge_system's network interface and disk name
+<<<<<<< HEAD
 network_interface = get_default_network_interface()
+=======
+
+# There are situations where route may not actually return a default route in the
+# main routing table, as the default route might be kept in another table.
+# Such cases should be handled manually.
+network_interface = get_default_network_interface()
+# If edge_system has multiple disks, only first disk will be returned.
+# Such cases should be handled manually.
+>>>>>>> vmware/master
 disk_name = get_disk_name()
 
 #---------------------------------------------------------------------------
@@ -75,8 +89,7 @@ class PackageClass(LiotaPackage):
 
         # Get values from configuration file
         config_path = registry.get("package_conf")
-        config = {}
-        execfile(config_path + '/sampleProp.conf', config)
+        config = read_user_config(config_path + '/sampleProp.conf')
 
         # Create metrics
         self.metrics = []

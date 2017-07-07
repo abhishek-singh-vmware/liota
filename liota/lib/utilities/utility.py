@@ -35,6 +35,7 @@
 """
 
 from datetime import datetime
+import ast
 import hashlib
 import logging
 import os
@@ -46,7 +47,11 @@ import ConfigParser
 import stat
 import json
 import subprocess
+<<<<<<< HEAD
 
+=======
+import time
+>>>>>>> vmware/master
 
 log = logging.getLogger(__name__)
 
@@ -65,15 +70,21 @@ class systemUUID:
     def _getMacAddrIfaceHash(self):
         mac = uuid.getnode()
         if (mac >> 40) % 2:
-            log.warn(
-                'could not find a mac address, an unlikely potential exists for uuid collisions with liota instances on other IoT gateways')
-            # generate a 48-bit random integer from this seed
-            # always returns the same random integer
-            # however in get_uuid below a unique uuid for each resource name will be created
-            # this allows us not to have to store any uuid on the persistent storage yet
-            # create a unique system uuid
-            random.seed(1234567)
-            mac = random.randint(0, 281474976710655)
+            # retry after 30 seconds to get the mac address
+            # if not able to detect mac address after this try then go ahead with alternate mechanism
+            log.info('Retrying getting the mac address')
+            time.sleep(30)
+            mac = uuid.getnode()
+            if (mac >> 40) % 2:
+                log.warn(
+                    'could not find a mac address, an unlikely potential exists for uuid collisions with liota instances on other IoT gateways')
+                # generate a 48-bit random integer from this seed
+                # always returns the same random integer
+                # however in get_uuid below a unique uuid for each resource name will be created
+                # this allows us not to have to store any uuid on the persistent storage yet
+                # create a unique system uuid
+                random.seed(1234567)
+                mac = random.randint(0, 281474976710655)
         m = hashlib.md5()
         m.update(str(mac))
         self.macHash = m.hexdigest()
@@ -143,7 +154,11 @@ def get_disk_name():
 def getUTCmillis():
     return long(1000 * ((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds()))
 
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> vmware/master
 def mkdir(path):
     if not os.path.exists(path):
         try:
@@ -178,6 +193,23 @@ def store_edge_system_uuid(entity_name, entity_id, reg_entity_id):
             uuid_config.write(configfile)
     except ConfigParser.ParsingError, err:
         log.error('Could not open config file ' + str(err))
+
+
+def sha1sum(path_file):
+    """
+    This method calculates SHA-1 checksum of file.
+    :param path_file: absolute path of a file
+    """
+    if not os.path.isfile(path_file):
+        return None
+    sha1 = hashlib.sha1()
+    with open(path_file, "rb") as fp:
+        while True:
+            data = fp.read(65536)  # buffer size
+            if not data:
+                break
+            sha1.update(data)
+    return sha1
 
 
 class LiotaConfigPath:
@@ -249,7 +281,11 @@ class LiotaConfigPath:
             # missing config file
             log.warn('liota.conf file missing')
 
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> vmware/master
 def read_liota_config(section, name):
     """
     Returns the value of name within the specified section.
@@ -273,6 +309,24 @@ def read_liota_config(section, name):
     return value
 
 
+<<<<<<< HEAD
+=======
+def read_user_config(config_file_path):
+    """
+    Returns the user defined configuration as a dictionary from DEFAULT section.
+    """
+
+    config = ConfigParser.RawConfigParser()
+    config.optionxform = str
+    config.read(config_file_path)
+
+    user_config = dict(config.items('DEFAULT'))
+    for key, value in dict(config.items('DEFAULT')).iteritems():
+        user_config[key] = ast.literal_eval(value)
+    return user_config
+
+
+>>>>>>> vmware/master
 class DiscUtilities:
     """
     DiscUtilities is a wrapper of utility functions
@@ -299,7 +353,7 @@ class DiscUtilities:
                     log.error("Could not create directory for messenger pipe")
                     return False
             try:
-                os.mkfifo(pipe_file)
+                os.mkfifo(pipe_file, 0600)
                 log.info("Created pipe: " + pipe_file)
             except OSError:
                 log.error("Could not create messenger pipe")
